@@ -1,44 +1,80 @@
-char t;
+#include <ros.h>
+#include <std_msgs/String.h>
+#include <Servo.h>  
+ros::NodeHandle nh;
+int buzzerPin = 7;
+Servo myServo; 
+int servoPin = 8;   
+void messageCallback(const std_msgs::String& msg) {
+    if (strcmp(msg.data, "One") == 0) { 
+        digitalWrite(2, HIGH);
+        digitalWrite(3, LOW);
+        digitalWrite(4, HIGH); 
+        digitalWrite(5, LOW);} 
+    else if(strcmp(msg.data, "Two") == 0) {
+        digitalWrite(3, HIGH);
+        digitalWrite(2, LOW); 
+        digitalWrite(5, HIGH);  
+        digitalWrite(4, LOW);}
+    else if(strcmp(msg.data, "Three") == 0) {
+        digitalWrite(2, HIGH); 
+        digitalWrite(3, LOW); 
+        digitalWrite(5, HIGH);
+        digitalWrite(4, LOW); }
+    else if(strcmp(msg.data, "Four") == 0) {
+        digitalWrite(3, HIGH); 
+        digitalWrite(2, LOW); 
+        digitalWrite(4, HIGH);
+        digitalWrite(5, LOW); }
+    else if(strcmp(msg.data, "Five") == 0) {
+        digitalWrite(3, HIGH); 
+        digitalWrite(2, LOW); 
+        digitalWrite(4, HIGH);
+        digitalWrite(5, LOW); }
+    else if(strcmp(msg.data, "Noo") == 0) {
+      tone(buzzerPin, 2000);
+    }
+    else if(strcmp(msg.data, "Yo") == 0) {
+        digitalWrite(3, HIGH); 
+        digitalWrite(2, LOW); 
+        digitalWrite(4, HIGH);
+        digitalWrite(5, LOW);
+        myServo.attach(servoPin);
+        myServo.write(90);
+        tone(buzzerPin, 500);
+        delay(200);
+        digitalWrite(2, HIGH); 
+        digitalWrite(3, LOW); 
+        digitalWrite(5, HIGH);
+        digitalWrite(4, LOW);
+        myServo.write(0);
+        tone(buzzerPin, 1000);
+        delay(200);
+        myServo.detach(); 
+       }
+      
+    else{
+      digitalWrite(2, LOW); 
+        digitalWrite(3, LOW);  
+        digitalWrite(4, LOW);
+        digitalWrite(5, LOW);
+        noTone(buzzerPin);
+    }
+}
+
+ros::Subscriber<std_msgs::String> sub("gesture", &messageCallback);
+
 void setup() {
-  pinMode(2, OUTPUT);   // Left motor forward
-  pinMode(3, OUTPUT);   // Left motor reverse
-  pinMode(4, OUTPUT);   // Right motor forward
-  pinMode(5, OUTPUT);
-  Serial.begin(9600);  // Attaching the servo to the specified pin
+    pinMode(2, OUTPUT);
+    pinMode(3, OUTPUT);
+    pinMode(4, OUTPUT);
+     pinMode(buzzerPin, OUTPUT);  
+    
+    nh.getHardware()->setBaud(9600);
+    nh.initNode();
+    nh.subscribe(sub);
 }
 
 void loop() {
-  if (Serial.available()) {
-   char t = Serial.read();
-   if (t == 'F') {      // Move forward (both motors rotate in the forward direction)
-    digitalWrite(2, HIGH);   // Left motor forward
-    digitalWrite(3, LOW);    // Left motor reverse
-    digitalWrite(4, HIGH);   // Right motor forward
-    digitalWrite(5, LOW);    // Right motor reverse
-    }
-   else if (t == 'B') {      // Move backward (both motors rotate in the reverse direction) 
-    digitalWrite(2, LOW);    // Left motor reverse
-    digitalWrite(3, HIGH);   // Left motor forward
-    digitalWrite(4, LOW);    // Right motor reverse
-    digitalWrite(5, HIGH);   // Right motor forward
-    }
-   else if (t == 'L') {      // Turn left (left motor reverse, right motor forward)
-    digitalWrite(2, LOW);    // Left motor reverse    
-    digitalWrite(3, HIGH);   // Left motor forward
-    digitalWrite(4, HIGH);   // Right motor forward
-    digitalWrite(5, LOW);    // Right motor reverse
-   }
-   else if (t == 'R') {      // Turn right (left motor forward, right motor reverse)
-    digitalWrite(2, HIGH);   // Left motor forward
-    digitalWrite(3, LOW);    // Left motor reverse
-    digitalWrite(4, LOW);    // Right motor reverse
-    digitalWrite(5, HIGH);   // Right motor forward
-   }
-   else if (t == 'S'){      // Turn right (left motor forward, right motor reverse)
-    digitalWrite(2, LOW);   // Left motor forward
-    digitalWrite(3, LOW);    // Left motor reverse
-    digitalWrite(4, LOW);    // Right motor reverse
-    digitalWrite(5, LOW);   // Right motor forward
-   }
-  }
-}
+    nh.spinOnce();
+} 
